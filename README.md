@@ -17,8 +17,8 @@ A social media web app with basic functionalities that I created after following
 1. Clone the code
 3. Create a .env file with MONGO_URL, JWT_SECRET, and PORT variables
 4. cd into /server
-5. run "npm i express body-parser bcrypt cors dotenv gridfs-stream multer multer-gridfs-storage helmet morgan jsonwebtoken mongoose"
-6. run "node index.js"
+5. run "npm install"
+6. run "npm run start"
 7. cd into /client with a new terminal
-8. run "npm i react-redux @reduxjs/toolkit redux-persist react-dropzone dotenv formik yup react-router-dom@6 @mui/material @emotion/react @emotion/styled @mui/icons-material"
+8. run "npm install"
 9. run "npm run start"
