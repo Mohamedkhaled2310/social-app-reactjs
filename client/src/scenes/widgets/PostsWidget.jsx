@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setPosts } from "state";
 import PostWidget from "./PostWidget";
@@ -7,13 +7,17 @@ const PostsWidget = ({ userId, isProfile = false }) => {
   const dispatch = useDispatch();
   const posts = useSelector((state) => state.posts);
   const token = useSelector((state) => state.token);
-
+  const [comments,setComments] = useState([]);
   const getPosts = async () => {
     const response = await fetch("http://localhost:3001/posts", {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await response.json();
+    if(response.ok){
+      setComments(data.comments);
+    }
+    
     dispatch(setPosts({ posts: data }));
   };
 
@@ -36,7 +40,7 @@ const PostsWidget = ({ userId, isProfile = false }) => {
       getPosts();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
+  
   return (
     <>
       {posts.map(

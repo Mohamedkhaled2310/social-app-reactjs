@@ -16,6 +16,7 @@ import { setLogin } from "state";
 import Dropzone from "react-dropzone";
 import FlexBetween from "components/FlexBetween";
 
+// Validation schemas
 const registerSchema = yup.object().shape({
   firstName: yup.string().required("required"),
   lastName: yup.string().required("required"),
@@ -29,6 +30,7 @@ const loginSchema = yup.object().shape({
   password: yup.string().required("required"),
 });
 
+// Initial form values
 const initialValuesRegister = {
   firstName: "",
   lastName: "",
@@ -51,40 +53,37 @@ const Form = () => {
   const isLogin = pageType === "login";
   const isRegister = pageType === "register";
 
-const register = async (values, onSubmitProps) => {
-  try {
-    // Create FormData to handle the image upload along with other fields
-    const formData = new FormData();
-    formData.append("firstName", values.firstName);
-    formData.append("lastName", values.lastName);
-    formData.append("email", values.email);
-    formData.append("password", values.password);
+  const register = async (values, onSubmitProps) => {
+    try {
+      const formData = new FormData();
+      formData.append("firstName", values.firstName);
+      formData.append("lastName", values.lastName);
+      formData.append("email", values.email);
+      formData.append("password", values.password);
 
-    // If an image file is selected, append it to the formData
-    if (values.picture) {
-      formData.append("picture", values.picture);
+      if (values.picture) {
+        formData.append("picture", values.picture);
+        formData.append("picturePath", values.picture.name);
+      }
+
+      const response = await fetch("http://localhost:3001/auth/register", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Something went wrong");
+      }
+
+      onSubmitProps.resetForm();
+      setPageType("login");
+    } catch (error) {
+      console.error("Registration error:", error.message);
+      alert(error.message);
     }
-
-    const response = await fetch("http://localhost:3001/auth/register", {
-      method: "POST",
-      body: formData,
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.message || "Something went wrong");
-    }
-
-    onSubmitProps.resetForm(); // Reset form on successful registration
-    setPageType("login"); // Switch to login page after registration
-  } catch (error) {
-    console.error("Registration error:", error.message);
-    alert(error.message); // Display error
-  }
-};
-
-  
+  };
 
   const login = async (values, onSubmitProps) => {
     const loggedInResponse = await fetch("http://localhost:3001/auth/login", {
@@ -184,7 +183,7 @@ const register = async (values, onSubmitProps) => {
                           <p>Add Picture Here</p>
                         ) : (
                           <FlexBetween>
-                            <Typography>{values.picture.name}</Typography>
+                            <Typography>{values.picture?.name || "File Selected"}</Typography>
                             <EditOutlinedIcon />
                           </FlexBetween>
                         )}

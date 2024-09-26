@@ -3,11 +3,12 @@ const Post = require('../models/Post.js');
 // Add a comment
 const addComment = async (req, res) => {
   const { postId } = req.params;
-  const { userId, text } = req.body;
+  const { userId, comment } = req.body;
+console.log(comment);
 
   try {
     const post = await Post.findById(postId);
-    post.comments.push({ userId, text });
+    post.comments.push({ userId, comment });
     await post.save();
 
     res.status(201).json(post.comments);

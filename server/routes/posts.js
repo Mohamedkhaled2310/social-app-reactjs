@@ -12,7 +12,7 @@ router.get("/:userId/posts", verifyToken, getUserPosts);
 router.patch("/:id/like", verifyToken, likePost);
 /* Comment */
 
-router.post('/:postId/comments', verifyToken, addComment);
+router.post('/:postId/comment', verifyToken, addComment);
 router.route('/:postId/comments/:commentId')
     .patch(verifyToken, updateComment)
     .delete(verifyToken, deleteComment);

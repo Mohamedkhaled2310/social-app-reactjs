@@ -13,7 +13,7 @@ const register = async (req, res) => {
       picturePath,
       friends,
     } = req.body;
-
+    // console.log(req.body);
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
 
@@ -27,7 +27,7 @@ const register = async (req, res) => {
       viewedProfile: Math.floor(Math.random() * 10000),
       impressions: Math.floor(Math.random() * 10000),
     });
-    console.log(newUser);
+    // console.log(newUser);
     const savedUser = await newUser.save();
     res.status(201).json(savedUser);
   } catch (err) {

@@ -23,6 +23,8 @@ const PostWidget = ({
   likes,
   comments,
 }) => {
+  console.log(comments);
+  
   const [isComments, setIsComments] = useState(false);
   const dispatch = useDispatch();
   const token = useSelector((state) => state.token);
@@ -95,10 +97,10 @@ const PostWidget = ({
       {isComments && (
         <Box mt="0.5rem">
           {comments.map((comment, i) => (
-            <Box key={`${name}-${i}`}>
+            <Box key={`${comment.userId}-${i}`}>
               <Divider />
               <Typography sx={{ color: main, m: "0.5rem 0", pl: "1rem" }}>
-                {comment}
+                {comment.comment}
               </Typography>
             </Box>
           ))}
