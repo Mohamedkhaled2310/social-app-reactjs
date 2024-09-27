@@ -13,7 +13,7 @@ router.patch("/:id/like", verifyToken, likePost);
 /* Comment */
 
 router.post('/:postId/comment', verifyToken, addComment);
-router.route('/:postId/comments/:commentId')
+router.route('/:postId/comment/:commentId')
     .patch(verifyToken, updateComment)
     .delete(verifyToken, deleteComment);
 module.exports = router;
