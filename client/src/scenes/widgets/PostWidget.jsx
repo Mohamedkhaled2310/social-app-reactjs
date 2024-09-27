@@ -4,15 +4,22 @@ import {
   FavoriteOutlined,
   ShareOutlined,
 } from "@mui/icons-material";
-import { Box, Divider, IconButton, Typography, TextField, Button, useTheme } from "@mui/material";
+import {
+  Box,
+  Divider,
+  IconButton,
+  Typography,
+  TextField,
+  Button,
+  useTheme,
+} from "@mui/material";
 import FlexBetween from "components/FlexBetween";
 import Friend from "components/Friend";
 import WidgetWrapper from "components/WidgetWrapper";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setPost } from "state";
-
-
+// axois
 const PostWidget = ({
   postId,
   postUserId,
@@ -162,7 +169,7 @@ const PostWidget = ({
                   <Button
                     variant="contained"
                     color="primary"
-                    onClick={() => handleEditSubmit(comment._id)}
+                    onClick={() => handleEditSubmit(comment.commentId)}
                   >
                     Save
                   </Button>
@@ -205,7 +212,7 @@ const PostWidget = ({
             </Box>
           ))}
           <Divider />
-          
+
           {/* New Comment Input */}
           <Box mt="1rem" display="flex" gap="0.5rem" alignItems="center">
             <TextField

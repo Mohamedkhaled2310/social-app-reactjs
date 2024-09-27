@@ -52,13 +52,11 @@ const deleteComment = async (req, res) => {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    // Filter out the comment with the matching commentId
-    post.comments = post.comments.filter(comment => comment._id.toString() !== commentId);
+    post.comments = post.comments.filter(comment => comment.commentId.toString() !== commentId);
 
-    // Save the updated post after the comment is removed
     await post.save();
 
-    res.status(200).json(post); // Respond with the updated post
+    res.status(200).json(post);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
