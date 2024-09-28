@@ -15,6 +15,7 @@ import { useDispatch } from "react-redux";
 import { setLogin } from "state";
 import Dropzone from "react-dropzone";
 import FlexBetween from "components/FlexBetween";
+import axios from "axios";
 
 // Validation schemas
 const registerSchema = yup.object().shape({
@@ -66,41 +67,38 @@ const Form = () => {
         formData.append("picturePath", values.picture.name);
       }
 
-      const response = await fetch("http://localhost:3001/auth/register", {
-        method: "POST",
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Something went wrong");
-      }
+      const response = await axios.post(
+        "http://localhost:3001/auth/register",
+        formData
+      );
 
       onSubmitProps.resetForm();
       setPageType("login");
     } catch (error) {
-      console.error("Registration error:", error.message);
-      alert(error.message);
+      console.error("Registration error:", error.response?.data?.message || error.message);
+      alert(error.response?.data?.message || error.message);
     }
   };
 
   const login = async (values, onSubmitProps) => {
-    const loggedInResponse = await fetch("http://localhost:3001/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
-    const loggedIn = await loggedInResponse.json();
-    onSubmitProps.resetForm();
-    if (loggedIn) {
-      dispatch(
-        setLogin({
-          user: loggedIn.user,
-          token: loggedIn.token,
-        })
+    try {
+      const { data: loggedIn } = await axios.post(
+        "http://localhost:3001/auth/login",
+        values
       );
-      navigate("/home");
+      onSubmitProps.resetForm();
+      if (loggedIn) {
+        dispatch(
+          setLogin({
+            user: loggedIn.user,
+            token: loggedIn.token,
+          })
+        );
+        navigate("/home");
+      }
+    } catch (error) {
+      console.error("Login error:", error.response?.data?.message || error.message);
+      alert(error.response?.data?.message || error.message);
     }
   };
 

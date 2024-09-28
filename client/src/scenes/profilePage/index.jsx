@@ -2,6 +2,7 @@ import { Box, useMediaQuery } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import axios from "axios"; // Import axios
 import Navbar from "scenes/navbar";
 import FriendListWidget from "scenes/widgets/FriendListWidget";
 import MyPostWidget from "scenes/widgets/MyPostWidget";
@@ -14,19 +15,20 @@ const ProfilePage = () => {
   const token = useSelector((state) => state.token);
   const isNonMobileScreens = useMediaQuery("(min-width:1000px)");
 
-  const getUser = async () => {
-    const response = await fetch(`http://localhost:3001/users/${userId}`, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await response.json();
-    setUser(data);
-    console.log(data);
-  };
-
   useEffect(() => {
-    getUser();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    const fetchUser = async () => {
+      try {
+        const response = await axios.get(`http://localhost:3001/users/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUser(response.data); 
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchUser();
+  }, [userId, token]); // Ensure userId and token are dependencies
 
   if (!user) return null;
 

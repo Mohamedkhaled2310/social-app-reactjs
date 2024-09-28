@@ -10,13 +10,7 @@ import {
   useTheme,
   useMediaQuery,
 } from "@mui/material";
-import {
-  Search,
-  DarkMode,
-  LightMode,
-  Menu,
-  Close,
-} from "@mui/icons-material";
+import { Search, DarkMode, LightMode, Menu, Close } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { setMode, setLogout } from "state";
 import { useNavigate } from "react-router-dom";
@@ -40,6 +34,7 @@ const Navbar = () => {
 
   return (
     <FlexBetween padding="1rem 6%" backgroundColor={alt}>
+      {/* Logo and Search */}
       <FlexBetween gap="1.75rem">
         <Typography
           fontWeight="bold"
@@ -70,7 +65,7 @@ const Navbar = () => {
         )}
       </FlexBetween>
 
-      {/* DESKTOP NAV */}
+      {/* Desktop Navigation */}
       {isNonMobileScreens ? (
         <FlexBetween gap="2rem">
           <IconButton onClick={() => dispatch(setMode())}>
@@ -106,14 +101,12 @@ const Navbar = () => {
           </FormControl>
         </FlexBetween>
       ) : (
-        <IconButton
-          onClick={() => setIsMobileMenuToggled(!isMobileMenuToggled)}
-        >
+        <IconButton onClick={() => setIsMobileMenuToggled(!isMobileMenuToggled)}>
           <Menu />
         </IconButton>
       )}
 
-      {/* MOBILE NAV */}
+      {/* Mobile Navigation */}
       {!isNonMobileScreens && isMobileMenuToggled && (
         <Box
           position="fixed"
@@ -125,16 +118,14 @@ const Navbar = () => {
           minWidth="300px"
           backgroundColor={background}
         >
-          {/* CLOSE ICON */}
+          {/* Close Button */}
           <Box display="flex" justifyContent="flex-end" p="1rem">
-            <IconButton
-              onClick={() => setIsMobileMenuToggled(!isMobileMenuToggled)}
-            >
+            <IconButton onClick={() => setIsMobileMenuToggled(!isMobileMenuToggled)}>
               <Close />
             </IconButton>
           </Box>
 
-          {/* MENU ITEMS */}
+          {/* Mobile Menu Items */}
           <FlexBetween
             display="flex"
             flexDirection="column"
@@ -142,10 +133,7 @@ const Navbar = () => {
             alignItems="center"
             gap="3rem"
           >
-            <IconButton
-              onClick={() => dispatch(setMode())}
-              sx={{ fontSize: "25px" }}
-            >
+            <IconButton onClick={() => dispatch(setMode())} sx={{ fontSize: "25px" }}>
               {theme.palette.mode === "dark" ? (
                 <DarkMode sx={{ fontSize: "25px" }} />
               ) : (
@@ -173,9 +161,7 @@ const Navbar = () => {
                 <MenuItem value={fullName}>
                   <Typography>{fullName}</Typography>
                 </MenuItem>
-                <MenuItem onClick={() => dispatch(setLogout())}>
-                  Log Out
-                </MenuItem>
+                <MenuItem onClick={() => dispatch(setLogout())}>Log Out</MenuItem>
               </Select>
             </FormControl>
           </FlexBetween>

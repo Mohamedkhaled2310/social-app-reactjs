@@ -4,8 +4,10 @@ import Form from "./Form";
 const LoginPage = () => {
   const theme = useTheme();
   const isNonMobileScreens = useMediaQuery("(min-width: 1000px)");
+  
   return (
     <Box>
+      {/* Header Section */}
       <Box
         width="100%"
         backgroundColor={theme.palette.background.alt}
@@ -17,6 +19,7 @@ const LoginPage = () => {
         </Typography>
       </Box>
 
+      {/* Login Form Section */}
       <Box
         width={isNonMobileScreens ? "50%" : "93%"}
         p="2rem"

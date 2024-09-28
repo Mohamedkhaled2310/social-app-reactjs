@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { setFriends } from "state";
 import FlexBetween from "./FlexBetween";
 import UserImage from "./UserImage";
+import axios from "axios"; // Import axios
 
 const Friend = ({ friendId, name, subtitle, userPicturePath }) => {
   const dispatch = useDispatch();
@@ -22,18 +23,27 @@ const Friend = ({ friendId, name, subtitle, userPicturePath }) => {
   const isFriend = friends.find((friend) => friend._id === friendId);
 
   const patchFriend = async () => {
-    const response = await fetch(
-      `http://localhost:3001/users/${_id}/${friendId}`,
-      {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const data = await response.json();
-    dispatch(setFriends({ friends: data }));
+    if (friendId === _id) {
+      // Prevent adding oneself as a friend
+      alert("You cannot add yourself as a friend!");
+      return;
+    }
+
+    try {
+      const response = await axios.patch(
+        `http://localhost:3001/users/${_id}/${friendId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      dispatch(setFriends({ friends: response.data })); // Update friends in Redux store
+    } catch (error) {
+      console.error("Error updating friend:", error); // Handle error
+    }
   };
 
   return (
@@ -43,7 +53,7 @@ const Friend = ({ friendId, name, subtitle, userPicturePath }) => {
         <Box
           onClick={() => {
             navigate(`/profile/${friendId}`);
-            navigate(0);
+            navigate(0); // Reload the profile page
           }}
         >
           <Typography
@@ -65,7 +75,7 @@ const Friend = ({ friendId, name, subtitle, userPicturePath }) => {
         </Box>
       </FlexBetween>
       <IconButton
-        onClick={() => patchFriend()}
+        onClick={patchFriend}
         sx={{ backgroundColor: primaryLight, p: "0.6rem" }}
       >
         {isFriend ? (

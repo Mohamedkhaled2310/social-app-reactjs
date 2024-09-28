@@ -23,15 +23,15 @@ const addComment = async (req, res) => {
 // Update a comment
 const updateComment = async (req, res) => {
   const { postId, commentId } = req.params;
-  const { text } = req.body;
-
+  const { editComment } = req.body;
+  // console.log(editComment);
   try {
     const post = await Post.findById(postId);
-    const comment = post.comments.id(commentId);
-
+    const comment = post.comments.find(c => c.commentId === commentId);
+    console.log(comment);
     if (!comment) return res.status(404).json({ message: "Comment not found." });
 
-    comment.text = text;
+    comment.comment = editComment;
     await post.save();
 
     res.status(200).json(post);

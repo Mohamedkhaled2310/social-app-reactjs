@@ -1,3 +1,4 @@
+import axios from "axios";
 import {
   ChatBubbleOutlineOutlined,
   FavoriteBorderOutlined,
@@ -19,7 +20,7 @@ import WidgetWrapper from "components/WidgetWrapper";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setPost } from "state";
-// axois
+
 const PostWidget = ({
   postId,
   postUserId,
@@ -32,9 +33,10 @@ const PostWidget = ({
   comments,
 }) => {
   const [isComments, setIsComments] = useState(false);
-  const [newComment, setNewComment] = useState(""); // Track the new comment
-  const [editCommentId, setEditCommentId] = useState(null); // Track the comment being edited
-  const [editComment, setEditComment] = useState(""); // Track the content of the comment being edited
+  const [newComment, setNewComment] = useState("");
+  const [editCommentId, setEditCommentId] = useState(null);
+  const [editComment, setEditComment] = useState("");
+  
   const dispatch = useDispatch();
   const token = useSelector((state) => state.token);
   const loggedInUserId = useSelector((state) => state.user._id);
@@ -45,66 +47,71 @@ const PostWidget = ({
   const main = palette.neutral.main;
   const primary = palette.primary.main;
 
+  const axiosConfig = {
+    headers: { Authorization: `Bearer ${token}` },
+  };
+
   const patchLike = async () => {
-    const response = await fetch(`http://localhost:3001/posts/${postId}/like`, {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userId: loggedInUserId }),
-    });
-    const updatedPost = await response.json();
-    dispatch(setPost({ post: updatedPost }));
+    try {
+      const response = await axios.patch(
+        `http://localhost:3001/posts/${postId}/like`,
+        { userId: loggedInUserId },
+        axiosConfig
+      );
+      dispatch(setPost({ post: response.data }));
+    } catch (error) {
+      console.error("Error liking post:", error);
+    }
   };
 
   const handleCommentSubmit = async () => {
-    if (newComment.trim() === "") return; // Prevent empty comments
-
-    const response = await fetch(`http://localhost:3001/posts/${postId}/comment`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userId: loggedInUserId, comment: newComment }),
-    });
-
-    const updatedPost = await response.json();
-    dispatch(setPost({ post: updatedPost }));
-    setNewComment(""); // Clear the input after submission
+    if (newComment.trim()) {
+      try {
+        const response = await axios.post(
+          `http://localhost:3001/posts/${postId}/comment`,
+          { userId: loggedInUserId, comment: newComment },
+          axiosConfig
+        );
+        dispatch(setPost({ post: response.data }));
+        setNewComment("");
+      } catch (error) {
+        console.error("Error submitting comment:", error);
+      }
+    }
   };
 
   const handleEditSubmit = async (commentId) => {
-    if (editComment.trim() === "") return; // Prevent empty edits
-
-    const response = await fetch(`http://localhost:3001/posts/${postId}/comment/${commentId}`, {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userId: loggedInUserId, comment: editComment }),
-    });
-
-    const updatedPost = await response.json();
-    dispatch(setPost({ post: updatedPost }));
-    setEditCommentId(null); // Exit edit mode
-    setEditComment(""); // Clear the edit input
+    if (editComment.trim()) {
+      try {
+        const response = await axios.patch(
+          `http://localhost:3001/posts/${postId}/comment/${commentId}`,
+          { userId: loggedInUserId, editComment },
+          axiosConfig
+        );
+        dispatch(setPost({ post: response.data }));
+        setEditCommentId(null);
+        setEditComment("");
+      } catch (error) {
+        console.error("Error editing comment:", error);
+      }
+    }
   };
 
   const handleDeleteComment = async (commentId) => {
-    const response = await fetch(`http://localhost:3001/posts/${postId}/comment/${commentId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userId: loggedInUserId }),
-    });
-
-    const updatedPost = await response.json();
-    dispatch(setPost({ post: updatedPost }));
+    try {
+      const response = await axios.delete(
+        `http://localhost:3001/posts/${postId}/comment/${commentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          data: { userId: loggedInUserId },
+        }
+      );
+      dispatch(setPost({ post: response.data }));
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+    }
   };
 
   return (
@@ -139,25 +146,23 @@ const PostWidget = ({
             </IconButton>
             <Typography>{likeCount}</Typography>
           </FlexBetween>
-
           <FlexBetween gap="0.3rem">
-            <IconButton onClick={() => setIsComments(!isComments)}>
+            <IconButton onClick={() => setIsComments((prev) => !prev)}>
               <ChatBubbleOutlineOutlined />
             </IconButton>
             <Typography>{comments.length}</Typography>
           </FlexBetween>
         </FlexBetween>
-
         <IconButton>
           <ShareOutlined />
         </IconButton>
       </FlexBetween>
       {isComments && (
         <Box mt="0.5rem">
-          {comments.map((comment, i) => (
-            <Box key={`${comment.userId}-${i}`}>
+          {comments.map((comment) => (
+            <Box key={comment.commentId}>
               <Divider />
-              {editCommentId === comment._id ? (
+              {editCommentId === comment.commentId ? (
                 <Box display="flex" gap="0.5rem" alignItems="center" mt="0.5rem">
                   <TextField
                     fullWidth
@@ -176,7 +181,7 @@ const PostWidget = ({
                   <Button
                     variant="outlined"
                     color="secondary"
-                    onClick={() => setEditCommentId(null)} // Cancel editing
+                    onClick={() => setEditCommentId(null)}
                   >
                     Cancel
                   </Button>
@@ -193,7 +198,7 @@ const PostWidget = ({
                         color="primary"
                         onClick={() => {
                           setEditCommentId(comment.commentId);
-                          setEditComment(comment.comment); // Set the current comment in the input for editing
+                          setEditComment(comment.comment);
                         }}
                       >
                         Edit
@@ -212,8 +217,6 @@ const PostWidget = ({
             </Box>
           ))}
           <Divider />
-
-          {/* New Comment Input */}
           <Box mt="1rem" display="flex" gap="0.5rem" alignItems="center">
             <TextField
               fullWidth
@@ -221,7 +224,7 @@ const PostWidget = ({
               size="small"
               label="Add a comment..."
               value={newComment}
-              onChange={(e) => setNewComment(e.target.value)} // Update state on input change
+              onChange={(e) => setNewComment(e.target.value)}
             />
             <Button
               variant="contained"
