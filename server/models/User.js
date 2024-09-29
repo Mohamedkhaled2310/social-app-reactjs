@@ -2,6 +2,12 @@ const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema(
   {
+    username: {
+      type: String,
+      trim: true,
+      unique: true,
+      required: true
+    },
     firstName: {
       type: String,
       required: true,
@@ -25,15 +31,29 @@ const UserSchema = new mongoose.Schema(
       required: true,
       min: 5,
     },
+    address: {
+      type: String,
+      default: '',
+    },
+    gender: {
+      type: String,
+      default: 'male'
+    },
+    website: {
+      type: String,
+      default: '',
+    },
+    phone: {
+      type: String,
+      default: ''
+    },
     picturePath: {
       type: String,
       default: "",
     },
-    friends: {
-      type: Array,
-      default: [],
-    },
-
+    friends: [{ type: mongoose.Types.ObjectId, ref: 'User' }],
+    following: [{ type: mongoose.Types.ObjectId, ref: 'User' }],
+    saved: [{ type: mongoose.Types.ObjectId, ref: 'User' }]
   },
   { timestamps: true }
 );
