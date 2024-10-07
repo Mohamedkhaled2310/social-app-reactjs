@@ -1,16 +1,34 @@
 const Post = require('../models/Post.js');
+const User = require('../models/User.js');
 const { v4: uuidv4 } = require('uuid'); // for unique commentID
-
 const addComment = async (req, res) => {
   const { postId } = req.params;
   const { userId, comment } = req.body;
 
-  console.log(comment);
 
   try {
     const post = await Post.findById(postId);
+    if (!post) 
+    {
+   return res.status(404).json({ message: "Post not found" });
+    }
+    const user= await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
     const commentId = uuidv4();
-    post.comments.push({ commentId, userId, comment });
+
+    const newComment = {
+      commentId,
+      userId,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      picturePath: user.picturePath,
+      comment,
+      createdAt: new Date(),
+    };
+
+    post.comments.push(newComment);
     await post.save();
 
     res.status(201).json(post);

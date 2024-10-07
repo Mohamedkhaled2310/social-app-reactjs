@@ -25,6 +25,18 @@ const UserSchema = new mongoose.Schema(
       required: true,
       min: 5,
     },
+    location: {
+      type: String,
+      default: '',
+    },
+    work: {
+      type: String,
+      default: '',
+    },
+    education: {
+      type: String,
+      default: '',
+    },
     picturePath: {
       type: String,
       default: "",
@@ -32,6 +44,10 @@ const UserSchema = new mongoose.Schema(
     friends: {
       type: Array,
       default: [],
+    },
+    user_type: {
+      type: String,
+      default: 'user',
     },
 
   },

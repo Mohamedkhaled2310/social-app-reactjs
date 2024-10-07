@@ -70,12 +70,20 @@ const MyPostWidget = ({ picturePath }) => {
           sx={{
             width: "100%",
             backgroundColor: palette.neutral.light,
-            borderRadius: "2rem",
-            padding: "1rem 2rem",
+            borderRadius: "1rem",
+            padding: "1rem 1.5rem",
+            border: `2px solid ${post ? "#ff6f20" : palette.neutral.light}`, // Orange border if text exists
+            transition: "border-color 0.3s ease", // Smooth transition for the border
+            "&:focus": {
+              outline: "none", // Remove default outline
+              border: `2px solid #ff6f20`, // Orange border on focus
+            },
+            "&:hover": {
+              border: `2px solid #ff6f20`, // Optional: Change border color on hover
+            },
           }}
         />
       </FlexBetween>
-
       {isImage && (
         <Box
           border={`1px solid ${medium}`}
@@ -161,9 +169,15 @@ const MyPostWidget = ({ picturePath }) => {
           disabled={!post}
           onClick={handlePost}
           sx={{
-            color: palette.background.alt,
-            backgroundColor: palette.primary.main,
-            borderRadius: "3rem",
+            color: "#ffffff", // White text color for contrast
+            backgroundColor: "#ff6f20", // Orange color for the button
+            borderRadius: "0.8rem",
+            padding: "0.5rem 1.5rem", // Adjust padding for a better shape
+            transition: "background-color 0.3s ease, transform 0.2s ease", // Smooth transition for hover
+            "&:hover": {
+              backgroundColor: "#ff8c45", // Lighter orange for hover effect
+              // Slightly scale up on hover for effect
+            },
           }}
         >
           POST

@@ -71,9 +71,61 @@ const likePost = async (req, res) => {
   }
 };
 
+const deletePost = async (req, res) => {
+  try {
+      
+      const post = await Post.findById(req.params.postId);
+
+      if (!post) {
+          return res.status(404).json({ message: "Post not found." });
+      }
+
+    
+      if (post.userId !== req.user.id) {
+          return res.status(403).json({ message: "You are not authorized to delete this post." });
+      }
+
+    
+      await Post.findByIdAndDelete(req.params.postId);
+
+      res.status(200).json({ message: "Post deleted successfully." });
+  } catch (error) {
+      res.status(500).json({ message: "An error occurred.", error });
+  }
+};
+const likeComment = async (req, res) => {
+  const { postId, commentId } = req.params;
+  const { userId } = req.body; // assuming userId comes from the request body
+
+  try {
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    const comment = post.comments.find(c => c.commentId === commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    // Toggle like status
+    if (comment.likes.has(userId)) {
+      comment.likes.delete(userId); // Remove like if already liked
+    } else {
+      comment.likes.set(userId, true); // Add like
+    }
+
+    await post.save();
+    res.status(200).json(post);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 module.exports = {
   createPost,
   getFeedPosts,
   getUserPosts,
   likePost,
+  deletePost,
+  likeComment,
 };

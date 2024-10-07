@@ -1,10 +1,22 @@
 import {
   ManageAccountsOutlined,
-  EditOutlined,
+  Edit,
   LocationOnOutlined,
   WorkOutlineOutlined,
+  SchoolOutlined,
 } from "@mui/icons-material";
-import { Box, Typography, Divider, useTheme } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Divider,
+  useTheme,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  Button,
+} from "@mui/material";
 import UserImage from "components/UserImage";
 import FlexBetween from "components/FlexBetween";
 import WidgetWrapper from "components/WidgetWrapper";
@@ -15,19 +27,28 @@ import axios from "axios";
 
 const UserWidget = ({ userId, picturePath }) => {
   const [user, setUser] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openDialogEducation, setOpenDialogEducation] = useState(false);
+  const [openDialogWork, setOpenDialogWork] = useState(false);
+  const [newLocation, setNewLocation] = useState("");
+  const [newEducation, setNewEducation] = useState("");
+  const [newWork, setNewWork] = useState("");
   const { palette } = useTheme();
   const navigate = useNavigate();
   const token = useSelector((state) => state.token);
-  const dark = palette.neutral.dark;
-  const medium = palette.neutral.medium;
-  const main = palette.neutral.main;
 
   const getUser = async () => {
     try {
-      const response = await axios.get(`http://localhost:3001/users/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `http://localhost:3001/users/${userId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setUser(response.data);
+      setNewLocation(response.data.location);
+      setNewEducation(response.data.education);
+      setNewWork(response.data.work);
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
@@ -36,6 +57,35 @@ const UserWidget = ({ userId, picturePath }) => {
   useEffect(() => {
     getUser();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const updateUser = async (field, value) => {
+    try {
+      await axios.patch(`http://localhost:3001/users/${userId}`, { [field]: value }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser((prevUser) => ({
+        ...prevUser,
+        [field]: value, 
+      }));
+    } catch (error) {
+      console.error(`Error updating ${field}:`, error);
+    }
+  };
+
+  const handleSaveLocation = () => {
+    updateUser("location", newLocation);
+    setOpenDialog(false);
+  };
+
+  const handleSaveEducation = () => {
+    updateUser("education", newEducation); 
+    setOpenDialogEducation(false);
+  };
+
+  const handleSaveWork = () => {
+    updateUser("work", newWork); 
+    setOpenDialogWork(false);
+  };
 
   if (!user) {
     return null;
@@ -49,6 +99,8 @@ const UserWidget = ({ userId, picturePath }) => {
     viewedProfile,
     impressions,
     friends,
+    education,
+    work,
   } = user;
 
   return (
@@ -64,7 +116,7 @@ const UserWidget = ({ userId, picturePath }) => {
           <Box>
             <Typography
               variant="h4"
-              color={dark}
+              color={palette.neutral.dark}
               fontWeight="500"
               sx={{
                 "&:hover": {
@@ -75,7 +127,9 @@ const UserWidget = ({ userId, picturePath }) => {
             >
               {firstName} {lastName}
             </Typography>
-            <Typography color={medium}>{friends.length} friends</Typography>
+            <Typography color={palette.neutral.medium}>
+              {friends.length} Follow
+            </Typography>
           </Box>
         </FlexBetween>
         <ManageAccountsOutlined />
@@ -86,65 +140,293 @@ const UserWidget = ({ userId, picturePath }) => {
       {/* SECOND ROW */}
       <Box p="1rem 0">
         <Box display="flex" alignItems="center" gap="1rem" mb="0.5rem">
-          <LocationOnOutlined fontSize="large" sx={{ color: main }} />
-          <Typography color={medium}>{location}</Typography>
-        </Box>
-        <Box display="flex" alignItems="center" gap="1rem">
-          <WorkOutlineOutlined fontSize="large" sx={{ color: main }} />
-          <Typography color={medium}>{occupation}</Typography>
+          <LocationOnOutlined
+            fontSize="medium"
+            sx={{ color: palette.neutral.main }}
+          />
+          <Typography color={palette.neutral.medium}>{location}</Typography>
+          <Box sx={{ marginLeft: "auto" }}>
+            <Edit
+              fontSize="medium"
+              sx={{ color: palette.neutral.main, cursor: "pointer" }}
+              onClick={() => {
+                setOpenDialog(true);
+                setNewLocation(location);
+              }}
+            />
+          </Box>
         </Box>
       </Box>
 
       <Divider />
 
-      {/* THIRD ROW */}
+      {/* Dialog for Editing Location */}
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        PaperProps={{
+          sx: {
+            backgroundColor:
+              palette.mode === "dark" ? palette.background.default : "#fff",
+            borderRadius: "8px",
+            padding: "1rem",
+          },
+        }}
+      >
+        <DialogTitle sx={{ color: palette.text.primary, fontWeight: "bold" }}>
+          Edit Location
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Location"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={newLocation}
+            onChange={(e) => setNewLocation(e.target.value)}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: palette.neutral.main,
+                },
+                "&:hover fieldset": {
+                  borderColor: palette.primary.dark,
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: palette.grey.light,
+                },
+              },
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setOpenDialog(false)}
+            sx={{
+              color: palette.error.main,
+              "&:hover": {
+                backgroundColor: palette.error.light,
+                color: "#fff",
+              },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSaveLocation}
+            sx={{
+              backgroundColor: "orange",
+              color: "#fff",
+              "&:hover": {
+                backgroundColor: "darkorange",
+                boxShadow: "0px 2px 10px rgba(0,0,0,0.2)",
+              },
+            }}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* THIRD ROW - EDUCATION */}
       <Box p="1rem 0">
-        <FlexBetween mb="0.5rem">
-          <Typography color={medium}>Who's viewed your profile</Typography>
-          <Typography color={main} fontWeight="500">
-            {viewedProfile}
-          </Typography>
-        </FlexBetween>
+        <Box display="flex" alignItems="center" gap="1rem" mb="0.5rem">
+          <SchoolOutlined
+            fontSize="medium"
+            sx={{ color: palette.neutral.main }}
+          />
+          <Typography color={palette.neutral.medium}>{education}</Typography>
+          <Box sx={{ marginLeft: "auto" }}>
+            <Edit
+              fontSize="medium"
+              sx={{ color: palette.neutral.main, cursor: "pointer" }}
+              onClick={() => {
+                setOpenDialogEducation(true);
+                setNewEducation(education);
+              }}
+            />
+          </Box>
+        </Box>
+      </Box>
+
+      <Divider />
+
+      {/* Dialog for Editing Education */}
+      <Dialog
+        open={openDialogEducation}
+        onClose={() => setOpenDialogEducation(false)}
+        PaperProps={{
+          sx: {
+            backgroundColor:
+              palette.mode === "dark" ? palette.background.default : "#fff",
+            borderRadius: "8px",
+            padding: "1rem",
+          },
+        }}
+      >
+        <DialogTitle sx={{ color: palette.text.primary, fontWeight: "bold" }}>
+          Edit Education
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Education"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={newEducation}
+            onChange={(e) => setNewEducation(e.target.value)}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: palette.neutral.main,
+                },
+                "&:hover fieldset": {
+                  borderColor: palette.primary.dark,
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: palette.grey.light,
+                },
+              },
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setOpenDialogEducation(false)}
+            sx={{
+              color: palette.error.main,
+              "&:hover": {
+                backgroundColor: palette.error.light,
+                color: "#fff",
+              },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSaveEducation}
+            sx={{
+              backgroundColor: "orange",
+              color: "#fff",
+              "&:hover": {
+                backgroundColor: "darkorange",
+                boxShadow: "0px 2px 10px rgba(0,0,0,0.2)",
+              },
+            }}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* FOURTH ROW - WORK */}
+      <Box p="1rem 0">
+        <Box display="flex" alignItems="center" gap="1rem" mb="0.5rem">
+          <WorkOutlineOutlined
+            fontSize="medium"
+            sx={{ color: palette.neutral.main }}
+          />
+          <Typography color={palette.neutral.medium}>{work}</Typography>
+          <Box sx={{ marginLeft: "auto" }}>
+            <Edit
+              fontSize="medium"
+              sx={{ color: palette.neutral.main, cursor: "pointer" }}
+              onClick={() => {
+                setOpenDialogWork(true);
+                setNewWork(work);
+              }}
+            />
+          </Box>
+        </Box>
+      </Box>
+
+      <Divider />
+
+      {/* Dialog for Editing Work */}
+      <Dialog
+        open={openDialogWork}
+        onClose={() => setOpenDialogWork(false)}
+        PaperProps={{
+          sx: {
+            backgroundColor:
+              palette.mode === "dark" ? palette.background.default : "#fff",
+            borderRadius: "8px",
+            padding: "1rem",
+          },
+        }}
+      >
+        <DialogTitle sx={{ color: palette.text.primary, fontWeight: "bold" }}>
+          Edit Work
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Work"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={newWork}
+            onChange={(e) => setNewWork(e.target.value)}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: palette.neutral.main,
+                },
+                "&:hover fieldset": {
+                  borderColor: palette.primary.dark,
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: palette.grey.light,
+                },
+              },
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setOpenDialogWork(false)}
+            sx={{
+              color: palette.error.main,
+              "&:hover": {
+                backgroundColor: palette.error.light,
+                color: "#fff",
+              },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSaveWork}
+            sx={{
+              backgroundColor: "orange",
+              color: "#fff",
+              "&:hover": {
+                backgroundColor: "darkorange",
+                boxShadow: "0px 2px 10px rgba(0,0,0,0.2)",
+              },
+            }}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Divider />
+
+      {/* FIFTH ROW */}
+      <Box p="1rem 0">
         <FlexBetween>
-          <Typography color={medium}>Impressions of your post</Typography>
-          <Typography color={main} fontWeight="500">
-            {impressions}
+          <Typography color={palette.neutral.medium}>
+            {viewedProfile} people viewed your profile
           </Typography>
-        </FlexBetween>
-      </Box>
-
-      <Divider />
-
-      {/* FOURTH ROW */}
-      <Box p="1rem 0">
-        <Typography fontSize="1rem" color={main} fontWeight="500" mb="1rem">
-          Social Profiles
-        </Typography>
-
-        <FlexBetween gap="1rem" mb="0.5rem">
-          <FlexBetween gap="1rem">
-            <img src="../assets/twitter.png" alt="twitter" />
-            <Box>
-              <Typography color={main} fontWeight="500">
-                Twitter
-              </Typography>
-              <Typography color={medium}>Social Network</Typography>
-            </Box>
-          </FlexBetween>
-          <EditOutlined sx={{ color: main }} />
-        </FlexBetween>
-
-        <FlexBetween gap="1rem">
-          <FlexBetween gap="1rem">
-            <img src="../assets/linkedin.png" alt="linkedin" />
-            <Box>
-              <Typography color={main} fontWeight="500">
-                Linkedin
-              </Typography>
-              <Typography color={medium}>Network Platform</Typography>
-            </Box>
-          </FlexBetween>
-          <EditOutlined sx={{ color: main }} />
+          <Typography color={palette.neutral.medium}>
+            {impressions} impressions
+          </Typography>
         </FlexBetween>
       </Box>
     </WidgetWrapper>

@@ -1,4 +1,4 @@
-import { Box, useMediaQuery } from "@mui/material";
+import { Box, useMediaQuery, CircularProgress } from "@mui/material"; // Import CircularProgress
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
@@ -11,24 +11,44 @@ import UserWidget from "scenes/widgets/UserWidget";
 
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true); // Add loading state
   const { userId } = useParams();
   const token = useSelector((state) => state.token);
   const isNonMobileScreens = useMediaQuery("(min-width:1000px)");
 
   useEffect(() => {
     const fetchUser = async () => {
+      setLoading(true); // Set loading to true before fetching
       try {
-        const response = await axios.get(`http://localhost:3001/users/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUser(response.data); 
+        const response = await axios.get(
+          `http://localhost:3001/users/${userId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setUser(response.data);
       } catch (error) {
         console.error(error);
+      } finally {
+        setLoading(false); // Set loading to false after fetching
       }
     };
 
     fetchUser();
   }, [userId, token]); // Ensure userId and token are dependencies
+
+  if (loading) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="100vh" // Center loading spinner vertically and horizontally
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   if (!user) return null;
 

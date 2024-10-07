@@ -1,0 +1,22 @@
+extends layout
+
+block content
+
+      h2.text-2xl.font-bold.mt-6 Post Comments
+      if postComments.comments.length > 0
+        ul
+          each comment in postComments.comments
+            li.bg-white.shadow-md.rounded-lg.p-4.mb-4
+              .flex.items-center
+                img.w-10.h-10.rounded-full(src=`/assets/${comment.picturePath}`, alt='User image')
+                .ml-3
+                  h3.font-bold.text-lg #{comment.firstName} #{comment.lastName}
+                  p.text-gray-700.mb-2= comment.comment
+                  p.text-gray-500.text-sm Created At: #{new Date(comment.createdAt).toLocaleString()}
+                  form(action=`/posts/${post._id}/comments/${comment.commentId}/delete` method='POST')
+                    button.bg-red-500.text-white.font-bold.py-2.px-4.rounded Delete
+      else
+        p.mb-4.text-gray-600 No comments yet.
+
+      // Back button
+      a.bg-blue-500.text-white.font-bold.py-2.px-4.rounded(href="/admin/posts") Back to Posts

@@ -23,7 +23,20 @@ const postSchema = mongoose.Schema(
       of: Boolean,
     },
     comments: {
-      type: Array,
+      type: [{
+        commentId: String,
+        userId: String,
+        firstName: String,
+        lastName: String,
+        picturePath: String,
+        comment: String,
+        createdAt: Date,
+        likes: {
+          type: Map,
+          of: Boolean,
+          default: {},
+        },
+      }],
       default: [],
     },
   },

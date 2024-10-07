@@ -1,0 +1,44 @@
+extends layout
+
+block content
+    .overflow-x-auto
+      table.table-auto.w-full.bg-white.shadow-md.rounded-lg
+        thead.bg-gray-200
+          tr
+            th.px-4.py-2.text-left.font-semibold.text-gray-700 User
+            th.px-4.py-2.text-left.font-semibold.text-gray-700 Email
+            th.px-4.py-2.text-left.font-semibold.text-gray-700 Location
+            th.px-4.py-2.text-left.font-semibold.text-gray-700 Work
+            th.px-4.py-2.text-left.font-semibold.text-gray-700 Education
+            th.px-4.py-2.text-left.font-semibold.text-gray-700 Actions
+        tbody
+          each user in users
+            tr(class = "hover:bg-gray-100")
+              td.px-4.py-2
+                .flex.items-center
+                  img.w-10.h-10.rounded-full(src=`/assets/${user.picturePath}`, alt='User image')
+                  .ml-3
+                    | #{user.firstName} #{user.lastName}
+              td.px-4.py-2.text-gray-600
+                if user.email
+                  | #{user.email}
+                else
+                  | not exist
+              td.px-4.py-2.text-gray-600
+                if user.location
+                  | #{user.location}
+                else
+                  | not exist
+              td.px-4.py-2.text-gray-600
+                if user.work
+                  | #{user.work}
+                else
+                  | not exist
+              td.px-4.py-2.text-gray-600
+                if user.education
+                  | #{user.education}
+                else
+                  | not exist
+              td.px-4.py-2
+                .flex.space-x-2
+                  a.bg-red-500.text-white.font-bold.py-1.px-3.rounded(href=`/admin/users/delete/${user._id}`, onclick='return confirm("Are you sure you want to delete this user?")') Delete

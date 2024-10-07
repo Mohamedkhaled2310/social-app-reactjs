@@ -1,0 +1,44 @@
+extends layout
+
+block content
+
+  // Profile information display
+  .profile-info.mt-5
+    h3.text-xl.font-semibold.mb-4 Your Information
+    ul.list-none
+      li.p-2.border-b.border-gray-300
+        strong First Name:
+        | #{loggedUser.firstName}
+      li.p-2.border-b.border-gray-300
+        strong Last Name:
+        | #{loggedUser.lastName}
+      li.p-2.border-b.border-gray-300
+        strong Email:
+        | #{loggedUser.email}
+      li.p-2.border-b.border-gray-300
+        strong Phone:
+        | #{loggedUser.phone || 'Not Provided'}
+
+  // Form to change password
+  .change-password-section.mt-5
+    h3.text-xl.font-semibold.mb-4 Change Password
+    form(action='/profile/change-password', method='POST')
+      .mb-4
+        label(for='currentPassword', class='block text-sm font-medium text-gray-700') Current Password
+        input#currentPassword(type='password', name='currentPassword', required=true, class='mt-1 p-2 border border-gray-300 rounded w-full')
+      .mb-4
+        label(for='newPassword', class='block text-sm font-medium text-gray-700') New Password
+        input#newPassword(type='password', name='newPassword', required=true, class='mt-1 p-2 border border-gray-300 rounded w-full')
+      .mb-4
+        label(for='confirmPassword', class='block text-sm font-medium text-gray-700') Confirm New Password
+        input#confirmPassword(type='password', name='confirmPassword', required=true, class='mt-1 p-2 border border-gray-300 rounded w-full')
+      button(type='submit', class='mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600') Change Password
+
+  // Form to change phone number
+  .change-phone-section.mt-5
+    h3.text-xl.font-semibold.mb-4 Change Phone Number
+    form(action='/profile/change-phone', method='POST')
+      .mb-4
+        label(for='newPhone', class='block text-sm font-medium text-gray-700') New Phone Number
+        input#newPhone(type='tel', name='newPhone', required=true, class='mt-1 p-2 border border-gray-300 rounded w-full')
+      button(type='submit', class='mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600') Change Phone Number

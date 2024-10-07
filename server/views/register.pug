@@ -1,0 +1,37 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title Admin Registration
+    link(href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.1/dist/tailwind.min.css" rel="stylesheet")
+  body
+    .container.mx-auto.mt-10
+      .w-full.max-w-xs.mx-auto
+        h1.text-3xl.font-bold.text-center.mb-6 Register as Admin
+
+        if message
+          .text-red-500.text-center.mb-4 #{message}
+
+        form(method="POST", action="/admin/register")
+          .mb-4
+            label.block.text-gray-700.text-sm.font-bold.mb-2(for="firstName") First Name
+            input#firstName(type="text", name="firstName", placeholder="Enter First Name", required, class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline")
+
+          .mb-4
+            label.block.text-gray-700.text-sm.font-bold.mb-2(for="lastName") Last Name
+            input#lastName(type="text", name="lastName", placeholder="Enter Last Name", required, class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline")
+
+          .mb-4
+            label.block.text-gray-700.text-sm.font-bold.mb-2(for="email") Email
+            input#email(type="email", name="email", placeholder="Enter Email", required, class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline")
+
+          .mb-6
+            label.block.text-gray-700.text-sm.font-bold.mb-2(for="password") Password
+            input#password(type="password", name="password", placeholder="Enter Password", required, class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline")
+
+          .flex.items-center.justify-between
+            button(type="submit", class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline") Register
+
+        p.text-center.mt-4
+          a(href="/admin", class="text-blue-500 hover:text-blue-700") Already have an account? Login

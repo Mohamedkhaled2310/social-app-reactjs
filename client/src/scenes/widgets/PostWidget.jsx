@@ -4,6 +4,9 @@ import {
   FavoriteBorderOutlined,
   FavoriteOutlined,
   ShareOutlined,
+  MoreHoriz,
+  Send,
+  DeleteOutline,
 } from "@mui/icons-material";
 import {
   Box,
@@ -13,6 +16,8 @@ import {
   TextField,
   Button,
   useTheme,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import FlexBetween from "components/FlexBetween";
 import Friend from "components/Friend";
@@ -20,6 +25,7 @@ import WidgetWrapper from "components/WidgetWrapper";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setPost } from "state";
+import CommentLikeButton from "components/CommentLikeButton";
 
 const PostWidget = ({
   postId,
@@ -31,12 +37,15 @@ const PostWidget = ({
   userPicturePath,
   likes,
   comments,
+  createdAt
 }) => {
   const [isComments, setIsComments] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [editCommentId, setEditCommentId] = useState(null);
   const [editComment, setEditComment] = useState("");
-  
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [currentCommentId, setCurrentCommentId] = useState(null);
+
   const dispatch = useDispatch();
   const token = useSelector((state) => state.token);
   const loggedInUserId = useSelector((state) => state.user._id);
@@ -113,6 +122,50 @@ const PostWidget = ({
       console.error("Error deleting comment:", error);
     }
   };
+  // هي دي فانكشن ال delete ي حوده 
+  const handleDeletePost = async () => {
+    try {
+      const response = await axios.delete(`http://localhost:3001/posts/${postId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Dispatch the updated posts state if needed
+      dispatch(setPost({ post: response.data })); // Adjust according to your state management
+    } catch (error) {
+      console.error("Error deleting post:", error);
+    }
+  };
+
+  const handleMenuOpen = (event, commentId) => {
+    setAnchorEl(event.currentTarget);
+    setCurrentCommentId(commentId);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setCurrentCommentId(null);
+  };
+  // دي فانكشن بتاعه الوقت  ال ف ال كومنت 
+  const timeAgo = (date) => {
+    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+    
+    let interval = Math.floor(seconds / 31536000);
+    if (interval >= 1) return `${interval} y`;
+  
+    interval = Math.floor(seconds / 2592000);
+    if (interval >= 1) return `${interval} M`;
+  
+    interval = Math.floor(seconds / 86400);
+    if (interval >= 1) return `${interval} d`;
+  
+    interval = Math.floor(seconds / 3600);
+    if (interval >= 1) return `${interval} h`;
+  
+    interval = Math.floor(seconds / 60);
+    if (interval >= 1) return `${interval} m`;
+  
+    return `${seconds} s`;
+  };
+  
 
   return (
     <WidgetWrapper m="2rem 0">
@@ -122,6 +175,16 @@ const PostWidget = ({
         subtitle={location}
         userPicturePath={userPicturePath}
       />
+   {/* ده ui بتاع تاريخ انشاء البوست */}
+        <Typography variant="body2" color="textSecondary">
+    {new Date(createdAt).toLocaleString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    })}
+</Typography>
       <Typography color={main} sx={{ mt: "1rem" }}>
         {description}
       </Typography>
@@ -139,7 +202,7 @@ const PostWidget = ({
           <FlexBetween gap="0.3rem">
             <IconButton onClick={patchLike}>
               {isLiked ? (
-                <FavoriteOutlined sx={{ color: primary }} />
+                <FavoriteOutlined sx={{ color: "red" }} /> // Change to red when liked
               ) : (
                 <FavoriteBorderOutlined />
               )}
@@ -155,7 +218,13 @@ const PostWidget = ({
         </FlexBetween>
         <IconButton>
           <ShareOutlined />
+          {/* وده ال ui بتاعها عدل بقي براحتك عيششش */}
         </IconButton>
+        {loggedInUserId === postUserId && ( // Check if the logged-in user is the post owner
+    <IconButton onClick={handleDeletePost} sx={{ color: "red" }}> 
+      <DeleteOutline />
+    </IconButton>
+     )}
       </FlexBetween>
       {isComments && (
         <Box mt="0.5rem">
@@ -163,54 +232,96 @@ const PostWidget = ({
             <Box key={comment.commentId}>
               <Divider />
               {editCommentId === comment.commentId ? (
-                <Box display="flex" gap="0.5rem" alignItems="center" mt="0.5rem">
+                <Box
+                  display="flex"
+                  gap="0.5rem"
+                  alignItems="center"
+                  mt="0.5rem"
+                >
                   <TextField
                     fullWidth
                     variant="outlined"
                     size="small"
                     value={editComment}
                     onChange={(e) => setEditComment(e.target.value)}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        "& fieldset": {
+                          borderColor: "orange", // Change border color to orange
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "orange", // Change border color on hover to orange
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "orange", // Change border color when focused to orange
+                        },
+                      },
+                    }}
                   />
                   <Button
                     variant="contained"
-                    color="primary"
+                    sx={{
+                      backgroundColor: "orange", // Change button background color to orange
+                      "&:hover": {
+                        backgroundColor: "darkorange", // Change hover color if needed
+                      },
+                    }}
                     onClick={() => handleEditSubmit(comment.commentId)}
                   >
                     Save
                   </Button>
                   <Button
                     variant="outlined"
-                    color="secondary"
                     onClick={() => setEditCommentId(null)}
+                    sx={{
+                      borderColor: "#FFB74D", // Lighter orange for the initial state
+                      color: "#FFB74D", // Lighter orange for the text
+                      "&:hover": {
+                        borderColor: "#FFCC80", // Even lighter orange on hover
+                        color: "#FFCC80", // Match the text color on hover
+                      },
+                    }}
                   >
                     Cancel
                   </Button>
                 </Box>
               ) : (
-                <Box>
-                  <Typography sx={{ color: main, m: "0.5rem 0", pl: "1rem" }}>
-                    {comment.comment}
-                  </Typography>
-                  {comment.userId === loggedInUserId && (
-                    <Box display="flex" gap="0.5rem" mt="0.25rem">
-                      <Button
-                        variant="text"
-                        color="primary"
-                        onClick={() => {
-                          setEditCommentId(comment.commentId);
-                          setEditComment(comment.comment);
-                        }}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="text"
-                        color="secondary"
-                        onClick={() => handleDeleteComment(comment.commentId)}
-                      >
-                        Delete
-                      </Button>
+                // هنا ي حوده ال ui بتاع ال comment 
+                <Box display="flex" justifyContent="space-between" alignItems="center" mt="0.5rem" gap="0.5rem">
+                  <Box display="flex" alignItems="center" gap="0.5rem">
+                    <img
+                      src={`http://localhost:3001/assets/${comment.picturePath}`} 
+                      alt={`${comment.firstName} ${comment.lastName}`}
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        borderRadius: "50%",
+                      }}
+                    />
+                    <Box>
+                      <Typography sx={{ color: main }}>
+                        {comment.firstName} {comment.lastName} 
+                      </Typography>
+                      <Typography sx={{ color: main }}>
+                        {comment.comment}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        {timeAgo(comment.createdAt)} 
+                      </Typography>
                     </Box>
+                  </Box>
+                  {/* مكان components ال likeButooon */}
+                  <FlexBetween>
+                  <CommentLikeButton
+        commentId={comment.commentId}
+        postId={postId}
+        likes={comment.likes}
+      />
+         </FlexBetween>
+                  {comment.userId === loggedInUserId && (
+                    <IconButton onClick={(e) => handleMenuOpen(e, comment.commentId)}>
+                      <MoreHoriz />
+                    </IconButton>
                   )}
                 </Box>
               )}
@@ -225,17 +336,63 @@ const PostWidget = ({
               label="Add a comment..."
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
+              InputLabelProps={{
+                sx: {
+                  color: "orange", // Change label color to orange
+                  "&.Mui-focused": {
+                    color: "orange", // Change label color when focused
+                  },
+                },
+              }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "orange", // Change border color to orange
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "orange", // Change border color on hover to orange
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "orange", // Change border color when focused to orange
+                  },
+                },
+              }}
             />
-            <Button
-              variant="contained"
-              color="primary"
+            <IconButton
+              sx={{
+                color: "orange", // Change icon color to orange
+              }}
               onClick={handleCommentSubmit}
+              disabled={!newComment.trim()} // Disable when input is empty
             >
-              Post
-            </Button>
+              <Send sx={{ color: newComment.trim() ? "orange" : "grey" }} />{" "}
+
+            </IconButton>
           </Box>
         </Box>
       )}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl) && currentCommentId}
+        onClose={handleMenuClose}
+      >
+        <MenuItem
+          onClick={() => {
+            setEditCommentId(currentCommentId);
+            setAnchorEl(null);
+          }}
+        >
+          Edit
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            handleDeleteComment(currentCommentId);
+            setAnchorEl(null);
+          }}
+        >
+          Delete
+        </MenuItem>
+      </Menu>
     </WidgetWrapper>
   );
 };

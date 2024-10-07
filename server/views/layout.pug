@@ -1,0 +1,38 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title Dashboard - My App
+    link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css")
+  body
+    .flex.h-screen.bg-gray-100
+      //- Sidebar
+      aside.w-64.bg-gray-800.text-white.flex-shrink-0.fixed.h-full
+        .h-full.px-4.py-6
+          h2.text-xl.font-bold.mb-4 Dashboard
+          ul
+            li.mb-3
+              a(href="/admin/dashboard" class="block px-3 py-2 hover:bg-gray-700 rounded-md") Dashboard
+            li.mb-3
+              a(href="/admin/profile" class="block px-3 py-2 hover:bg-gray-700 rounded-md") Profile
+            li.mb-3
+              a(href="/admin/settings" class="block px-3 py-2 hover:bg-gray-700 rounded-md") Settings
+            li
+              a(href="/admin/logout" class="block px-3 py-2 bg-red-500 hover:bg-red-600 rounded-md") Logout
+      
+      //- Main content container
+      .flex-1.ml-64.flex.flex-col 
+        //- Navbar
+        header.bg-white.shadow.px-6.py-4
+          .flex.items-center.justify-between
+            h1.text-xl.font-semibold.text-gray-800 Dashboard
+
+            //- Placeholder for user info or other controls
+            div
+              span.text-gray-600 Hello, #{loggedUser ? loggedUser.firstName : 'User'}!
+              a(href="/admin/logout" class="ml-4 text-blue-500 hover:underline") Logout
+        
+        //- Main content area
+        main.flex-grow.p-6.overflow-auto
+          block content // This will be replaced by extended content

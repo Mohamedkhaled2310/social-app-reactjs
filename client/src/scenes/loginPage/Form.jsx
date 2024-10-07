@@ -3,35 +3,43 @@ import {
   Box,
   Button,
   TextField,
-  useMediaQuery,
   Typography,
+  useMediaQuery,
   useTheme,
 } from "@mui/material";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import { Formik } from "formik";
 import * as yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setLogin } from "state";
 import Dropzone from "react-dropzone";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import FlexBetween from "components/FlexBetween";
 import axios from "axios";
 
 // Validation schemas
 const registerSchema = yup.object().shape({
-  firstName: yup.string().required("required"),
-  lastName: yup.string().required("required"),
-  email: yup.string().email("invalid email").required("required"),
-  password: yup.string().required("required"),
-  picture: yup.string().required("required"),
+  firstName: yup.string().required("Please enter your first name."),
+  lastName: yup.string().required("Please enter your last name."),
+  email: yup
+    .string()
+    .email("Invalid email format.")
+    .required("Please enter your email."),
+  password: yup
+    .string()
+    .min(6, "Password must be at least 6 characters.")
+    .required("Please enter your password."),
+  picture: yup.string().required("Please upload a picture."),
 });
 
 const loginSchema = yup.object().shape({
-  email: yup.string().email("invalid email").required("required"),
-  password: yup.string().required("required"),
+  email: yup
+    .string()
+    .email("Invalid email format.")
+    .required("Please enter your email."),
+  password: yup.string().required("Please enter your password."),
 });
 
-// Initial form values
 const initialValuesRegister = {
   firstName: "",
   lastName: "",
@@ -47,7 +55,7 @@ const initialValuesLogin = {
 
 const Form = () => {
   const [pageType, setPageType] = useState("login");
-  const { palette } = useTheme();
+  const theme = useTheme();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const isNonMobile = useMediaQuery("(min-width:600px)");
@@ -71,11 +79,9 @@ const Form = () => {
         "http://localhost:3001/auth/register",
         formData
       );
-
       onSubmitProps.resetForm();
       setPageType("login");
     } catch (error) {
-      console.error("Registration error:", error.response?.data?.message || error.message);
       alert(error.response?.data?.message || error.message);
     }
   };
@@ -88,16 +94,10 @@ const Form = () => {
       );
       onSubmitProps.resetForm();
       if (loggedIn) {
-        dispatch(
-          setLogin({
-            user: loggedIn.user,
-            token: loggedIn.token,
-          })
-        );
+        dispatch(setLogin({ user: loggedIn.user, token: loggedIn.token }));
         navigate("/home");
       }
     } catch (error) {
-      console.error("Login error:", error.response?.data?.message || error.message);
       alert(error.response?.data?.message || error.message);
     }
   };
@@ -126,8 +126,8 @@ const Form = () => {
         <form onSubmit={handleSubmit}>
           <Box
             display="grid"
-            gap="30px"
-            gridTemplateColumns="repeat(4, minmax(0, 1fr))"
+            gap="20px"
+            gridTemplateColumns="repeat(4, 1fr)"
             sx={{
               "& > div": { gridColumn: isNonMobile ? undefined : "span 4" },
             }}
@@ -144,7 +144,10 @@ const Form = () => {
                     Boolean(touched.firstName) && Boolean(errors.firstName)
                   }
                   helperText={touched.firstName && errors.firstName}
-                  sx={{ gridColumn: "span 2" }}
+                  sx={{
+                    gridColumn: "span 2",
+                    "& .MuiInputBase-input": { color: "white" },
+                  }}
                 />
                 <TextField
                   label="Last Name"
@@ -154,11 +157,14 @@ const Form = () => {
                   name="lastName"
                   error={Boolean(touched.lastName) && Boolean(errors.lastName)}
                   helperText={touched.lastName && errors.lastName}
-                  sx={{ gridColumn: "span 2" }}
+                  sx={{
+                    gridColumn: "span 2",
+                    "& .MuiInputBase-input": { color: "white" },
+                  }}
                 />
                 <Box
                   gridColumn="span 4"
-                  border={`1px solid ${palette.neutral.medium}`}
+                  border={`1px solid ${theme.palette.neutral.medium}`}
                   borderRadius="5px"
                   p="1rem"
                 >
@@ -172,16 +178,16 @@ const Form = () => {
                     {({ getRootProps, getInputProps }) => (
                       <Box
                         {...getRootProps()}
-                        border={`2px dashed ${palette.primary.main}`}
+                        border={`2px dashed ${theme.palette.primary.main}`}
                         p="1rem"
                         sx={{ "&:hover": { cursor: "pointer" } }}
                       >
                         <input {...getInputProps()} />
                         {!values.picture ? (
-                          <p>Add Picture Here</p>
+                          <Typography>Add Picture Here</Typography>
                         ) : (
                           <FlexBetween>
-                            <Typography>{values.picture?.name || "File Selected"}</Typography>
+                            <Typography>{values.picture.name}</Typography>
                             <EditOutlinedIcon />
                           </FlexBetween>
                         )}
@@ -200,7 +206,10 @@ const Form = () => {
               name="email"
               error={Boolean(touched.email) && Boolean(errors.email)}
               helperText={touched.email && errors.email}
-              sx={{ gridColumn: "span 4" }}
+              sx={{
+                gridColumn: "span 4",
+                "& .MuiInputBase-input": { color: "white" },
+              }}
             />
             <TextField
               label="Password"
@@ -211,21 +220,41 @@ const Form = () => {
               name="password"
               error={Boolean(touched.password) && Boolean(errors.password)}
               helperText={touched.password && errors.password}
-              sx={{ gridColumn: "span 4" }}
+              sx={{
+                gridColumn: "span 4",
+                "& .MuiInputBase-input": { color: "white" },
+              }}
             />
           </Box>
 
-          {/* BUTTONS */}
           <Box>
             <Button
               fullWidth
               type="submit"
+              disabled={
+                !isLogin
+                  ? !values.firstName ||
+                    !values.lastName ||
+                    !values.email ||
+                    !values.password ||
+                    !values.picture ||
+                    Boolean(errors.firstName) ||
+                    Boolean(errors.lastName) ||
+                    Boolean(errors.email) ||
+                    Boolean(errors.password)
+                  : !values.email ||
+                    !values.password ||
+                    Boolean(errors.email) ||
+                    Boolean(errors.password)
+              }
               sx={{
-                m: "2rem 0",
+                mt: "2rem",
                 p: "1rem",
-                backgroundColor: palette.primary.main,
-                color: palette.background.alt,
-                "&:hover": { color: palette.primary.main },
+                backgroundColor: "#3f51b5", // Blue button color
+                color: "#ffffff",
+                "&:hover": { backgroundColor: "#303f8f" }, // Dark blue on hover
+                borderRadius: "10px",
+                boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
               }}
             >
               {isLogin ? "LOGIN" : "REGISTER"}
@@ -236,17 +265,48 @@ const Form = () => {
                 resetForm();
               }}
               sx={{
-                textDecoration: "underline",
-                color: palette.primary.main,
-                "&:hover": {
-                  cursor: "pointer",
-                  color: palette.primary.light,
-                },
+                mt: "1rem",
+                color: "grey", // Set the main text color to white
+                "&:hover": { cursor: "pointer" },
+                fontSize: "0.725rem",
+                textAlign: "center",
               }}
             >
-              {isLogin
-                ? "Don't have an account? Sign Up here."
-                : "Already have an account? Login here."}
+              {isLogin ? (
+                <>
+                  Don't have an account?{" "}
+                  <span
+                    style={{
+                      color: "#3f51b5", // Blue color
+                      textDecoration: "underline", // Underline
+                      cursor: "pointer",
+                    }}
+                    onClick={() => {
+                      setPageType("register");
+                      resetForm();
+                    }}
+                  >
+                    Register
+                  </span>
+                </>
+              ) : (
+                <>
+                  Already have an account?{" "}
+                  <span
+                    style={{
+                      color: "#3f51b5", // Blue color
+                      textDecoration: "underline", // Underline
+                      cursor: "pointer",
+                    }}
+                    onClick={() => {
+                      setPageType("login");
+                      resetForm();
+                    }}
+                  >
+                    Login
+                  </span>
+                </>
+              )}
             </Typography>
           </Box>
         </form>

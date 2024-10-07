@@ -1,26 +1,41 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import {
   Box,
   IconButton,
   InputBase,
   Typography,
-  Select,
+  Menu,
   MenuItem,
-  FormControl,
+  Avatar,
   useTheme,
   useMediaQuery,
 } from "@mui/material";
-import { Search, DarkMode, LightMode, Menu, Close } from "@mui/icons-material";
+import {
+  Search,
+  DarkMode,
+  LightMode,
+  Menu as MenuIcon,
+  Close,
+  Home,
+  Person,
+} from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { setMode, setLogout } from "state";
 import { useNavigate } from "react-router-dom";
 import FlexBetween from "components/FlexBetween";
+import axios from "axios";
 
 const Navbar = () => {
   const [isMobileMenuToggled, setIsMobileMenuToggled] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [searchQuery, setSearchQuery] = useState(""); 
+  const [searchResults, setSearchResults] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state) => state.user);
+  const token = useSelector((state) => state.token);
+
   const isNonMobileScreens = useMediaQuery("(min-width: 1000px)");
 
   const theme = useTheme();
@@ -31,25 +46,86 @@ const Navbar = () => {
   const alt = theme.palette.background.alt;
 
   const fullName = `${user.firstName} ${user.lastName}`;
+  const userId = user._id;
 
+  const handleMenuClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+// دي فانكشن ال seacrh 
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      handleSearch();
+    }, 500); 
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]); // Reset results if search query is empty
+      return;
+    }
+
+    if (!token) {
+      console.error('User token is missing');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      const params = { name: searchQuery }; 
+
+      const response = await axios.get('http://localhost:3001/users/search', {
+        params,
+        headers: {
+          Authorization: `Bearer ${token}`, 
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.data && response.data.users) {
+        console.log('Search results:', response.data.users);
+        setSearchResults(response.data.users); 
+      } else {
+        console.warn('No users found for the search query.');
+        setSearchResults([]); 
+      }
+    } catch (error) {
+      if (error.response) {
+        console.error('Server responded with error:', error.response.data);
+      } else {
+        console.error('Error during search request:', error.message);
+      }
+    } finally {
+      setIsLoading(false); 
+    }
+  };
   return (
     <FlexBetween padding="1rem 6%" backgroundColor={alt}>
       {/* Logo and Search */}
       <FlexBetween gap="1.75rem">
         <Typography
           fontWeight="bold"
-          fontSize="clamp(1rem, 2rem, 2.25rem)"
-          color="primary"
+          fontSize="clamp(1.5rem, 2.5rem, 3rem)"
+          color="orange" // Set color to orange
           onClick={() => navigate("/home")}
           sx={{
+            fontFamily: "Poppins, sans-serif", // Modern font
+            letterSpacing: "0.05rem",
+            transition: "color 0.3s ease", // Smooth transition for hover
             "&:hover": {
-              color: primaryLight,
+              color: "#ff7f50", // Coral color for a softer, more stylish hover effect
               cursor: "pointer",
             },
           }}
         >
-          FriendSphere
+          Connect.io
         </Typography>
+
         {isNonMobileScreens && (
           <FlexBetween
             backgroundColor={neutralLight}
@@ -57,52 +133,84 @@ const Navbar = () => {
             gap="3rem"
             padding="0.1rem 1.5rem"
           >
-            <InputBase placeholder="Search..." />
-            <IconButton>
+            {/* ال ui بتاع ال searc */}
+            <InputBase h 
+            placeholder="Search..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <IconButton> 
               <Search />
             </IconButton>
           </FlexBetween>
         )}
       </FlexBetween>
+      {searchResults.length > 0 && (
+  <Box>
+    {searchResults.map((user) => (
+      <Box key={user._id} onClick={() => navigate(`/profile/${user._id}`)}>
+        <Typography>{user.firstName} {user.lastName}</Typography>
+        <Avatar alt={user.firstName}  src={`http://localhost:3001/assets/${user.picturePath}`} />
+      </Box>
+    ))}
+  </Box>
+)}
+
+
 
       {/* Desktop Navigation */}
       {isNonMobileScreens ? (
         <FlexBetween gap="2rem">
+          <IconButton onClick={() => navigate("/home")}>
+            <Home sx={{ fontSize: "35px", }} />
+          </IconButton>
           <IconButton onClick={() => dispatch(setMode())}>
             {theme.palette.mode === "dark" ? (
-              <DarkMode sx={{ fontSize: "25px" }} />
+              <DarkMode sx={{ fontSize: "30px" }} />
             ) : (
-              <LightMode sx={{ color: dark, fontSize: "25px" }} />
+              <LightMode sx={{ color: dark, fontSize: "30px" }} />
             )}
           </IconButton>
-          <FormControl variant="standard" value={fullName}>
-            <Select
-              value={fullName}
-              sx={{
-                backgroundColor: neutralLight,
-                width: "150px",
-                borderRadius: "0.25rem",
-                p: "0.25rem 1rem",
-                "& .MuiSvgIcon-root": {
-                  pr: "0.25rem",
-                  width: "3rem",
-                },
-                "& .MuiSelect-select:focus": {
-                  backgroundColor: neutralLight,
-                },
+          <IconButton onClick={handleMenuClick}>
+          <img
+                      src={`http://localhost:3001/assets/${user.picturePath}`} 
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        borderRadius: "50%",
+                      }}
+                      />
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+            sx={{ mt: "45px" }}
+          >
+            <MenuItem
+              onClick={() => {
+                navigate(`/profile/${userId}`);
+                handleMenuClose();
               }}
-              input={<InputBase />}
             >
-              <MenuItem value={fullName}>
-                <Typography>{fullName}</Typography>
-              </MenuItem>
-              <MenuItem onClick={() => dispatch(setLogout())}>Log Out</MenuItem>
-            </Select>
-          </FormControl>
+              <Person sx={{ mr: "10px" }} />
+              Profile
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                dispatch(setLogout());
+                handleMenuClose();
+              }}
+            >
+              Log Out
+            </MenuItem>
+          </Menu>
         </FlexBetween>
       ) : (
-        <IconButton onClick={() => setIsMobileMenuToggled(!isMobileMenuToggled)}>
-          <Menu />
+        <IconButton
+          onClick={() => setIsMobileMenuToggled(!isMobileMenuToggled)}
+        >
+          <MenuIcon />
         </IconButton>
       )}
 
@@ -119,8 +227,10 @@ const Navbar = () => {
           backgroundColor={background}
         >
           {/* Close Button */}
-          <Box display="flex" justifyContent="flex-end" p="1rem">
-            <IconButton onClick={() => setIsMobileMenuToggled(!isMobileMenuToggled)}>
+          <Box display="flex" justifyContent="flex-start" p="1rem">
+            <IconButton
+              onClick={() => setIsMobileMenuToggled(!isMobileMenuToggled)}
+            >
               <Close />
             </IconButton>
           </Box>
@@ -128,42 +238,48 @@ const Navbar = () => {
           {/* Mobile Menu Items */}
           <FlexBetween
             display="flex"
-            flexDirection="column"
             justifyContent="center"
             alignItems="center"
-            gap="3rem"
+            flexDirection="column"
+            gap="2rem"
           >
-            <IconButton onClick={() => dispatch(setMode())} sx={{ fontSize: "25px" }}>
+            <IconButton onClick={() => navigate("/home")}>
+              <Home sx={{ fontSize: "45px", color: "#f1c40f" }} />
+            </IconButton>
+            <IconButton onClick={() => dispatch(setMode())}>
               {theme.palette.mode === "dark" ? (
-                <DarkMode sx={{ fontSize: "25px" }} />
+                <DarkMode sx={{ fontSize: "35px" }} />
               ) : (
-                <LightMode sx={{ color: dark, fontSize: "25px" }} />
+                <LightMode sx={{ color: dark, fontSize: "35px" }} />
               )}
             </IconButton>
-            <FormControl variant="standard" value={fullName}>
-              <Select
-                value={fullName}
-                sx={{
-                  backgroundColor: neutralLight,
-                  width: "150px",
-                  borderRadius: "0.25rem",
-                  p: "0.25rem 1rem",
-                  "& .MuiSvgIcon-root": {
-                    pr: "0.25rem",
-                    width: "3rem",
-                  },
-                  "& .MuiSelect-select:focus": {
-                    backgroundColor: neutralLight,
-                  },
+            <IconButton onClick={handleMenuClick}>
+              <Avatar alt={fullName} src={user.profilePicture} />
+            </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+              sx={{ mt: "45px" }}
+            >
+              <MenuItem
+                onClick={() => {
+                  navigate(`/profile/${userId}`);
+                  handleMenuClose();
                 }}
-                input={<InputBase />}
               >
-                <MenuItem value={fullName}>
-                  <Typography>{fullName}</Typography>
-                </MenuItem>
-                <MenuItem onClick={() => dispatch(setLogout())}>Log Out</MenuItem>
-              </Select>
-            </FormControl>
+                <Person sx={{ mr: "10px" }} />
+                Profile
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  dispatch(setLogout());
+                  handleMenuClose();
+                }}
+              >
+                Log Out
+              </MenuItem>
+            </Menu>
           </FlexBetween>
         </Box>
       )}
